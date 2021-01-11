@@ -77,6 +77,11 @@ final class HttpRequestEvent implements LambdaEvent
         return isset($this->event['multiValueHeaders']);
     }
 
+    public function hasCookies(): bool
+    {
+        return $this->payloadVersion === 2.0;
+    }
+
     public function getProtocol(): string
     {
         return $this->event['requestContext']['protocol'] ?? 'HTTP/1.1';

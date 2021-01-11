@@ -24,6 +24,6 @@ abstract class HttpHandler implements Handler
 
         $response = $this->handleRequest($httpEvent, $context);
 
-        return $response->toApiGatewayFormat($httpEvent->hasMultiHeader());
+        return $response->toApiGatewayFormat($httpEvent->hasMultiHeader(), $httpEvent->hasCookies());
     }
 }

@@ -23,11 +23,12 @@ final class HttpResponse
         $this->statusCode = $statusCode;
     }
 
-    public function toApiGatewayFormat(bool $multiHeaders = false): array
+    public function toApiGatewayFormat(bool $multiHeaders = false, bool $hasCookies = false): array
     {
         $base64Encoding = (bool) getenv('BREF_BINARY_RESPONSES');
 
         $headers = [];
+        $cookies = [];
         foreach ($this->headers as $name => $values) {
             // Capitalize header keys
             // See https://github.com/zendframework/zend-diactoros/blob/754a2ceb7ab753aafe6e3a70a1fb0370bde8995c/src/Response/SapiEmitterTrait.php#L96
@@ -38,6 +39,8 @@ final class HttpResponse
             if ($multiHeaders) {
                 // Make sure the values are always arrays
                 $headers[$name] = is_array($values) ? $values : [$values];
+            } else if ($hasCookies && $name === 'Set-Cookie') {
+                $cookies = (array) $values;
             } else {
                 // Make sure the values are never arrays
                 $headers[$name] = is_array($values) ? end($values) : $values;
@@ -53,11 +56,15 @@ final class HttpResponse
 
         // This is the format required by the AWS_PROXY lambda integration
         // See https://stackoverflow.com/questions/43708017/aws-lambda-api-gateway-error-malformed-lambda-proxy-response
-        return [
+        $response = [
             'isBase64Encoded' => $base64Encoding,
             'statusCode' => $this->statusCode,
             $headersKey => $headers,
             'body' => $base64Encoding ? base64_encode($this->body) : $this->body,
         ];
+        if ($hasCookies && $cookies) {
+            $response['cookies'] = $cookies;
+        }
+        return $response;
     }
 }

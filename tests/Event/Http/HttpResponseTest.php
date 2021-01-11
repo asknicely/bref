@@ -79,4 +79,20 @@ class HttpResponseTest extends TestCase
             'body' => '',
         ], $response->toApiGatewayFormat(true));
     }
+
+    public function test_cookies_in_v2_format_response()
+    {
+        $response = new HttpResponse('', [
+            'set-cookie' => ['bar', 'baz'],
+        ]);
+
+        self::assertEquals([
+            'isBase64Encoded' => false,
+            'statusCode' => 200,
+            // The last value is kept (when multiheaders are not enabled)
+            'headers' => new \stdClass(),
+            'body' => '',
+            'cookies' => ['bar', 'baz'],
+        ], $response->toApiGatewayFormat(false, true));
+    }
 }
